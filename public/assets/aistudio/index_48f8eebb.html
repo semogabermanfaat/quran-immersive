@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Al-Quran · Immersive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Lateef:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500&family=Scheherazade+New:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #f7f2e4;
+    --muted: rgba(247, 242, 228, 0.7);
+    --gold: #e9c98a;
+    --glass: rgba(8, 12, 10, 0.55);
+    --glass-strong: rgba(10, 15, 13, 0.92);
+    --line: rgba(255, 255, 255, 0.08);
+    /* Font UI aplikasi tetap stabil & tidak berubah saat tipografi diubah */
+    --font-app: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-ar: 'Scheherazade New', 'Lateef';
+    --font-id: 'Plus Jakarta Sans', sans-serif;
+    --ar-scale: 0.9;
+    --id-scale: 0.7;
+    --info-scale: 0.6;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; max-width: 100vw; overflow: hidden;
+    background: #070a09; color: var(--ink);
+    font-family: var(--font-app); user-select: none;
+  }
+  button, select, input { font-family: var(--font-app); }
+
+  /* ---------- Navigasi Remote TV ---------- */
+  button:focus, input:focus {
+    outline: 3px solid var(--gold) !important; outline-offset: 3px !important;
+    box-shadow: 0 0 20px rgba(233, 201, 138, 0.9) !important; transform: scale(1.06); z-index: 5;
+  }
+  .play:focus {
+    outline: 4px solid #ffffff !important; outline-offset: 4px !important;
+    box-shadow: 0 0 30px rgba(233, 201, 138, 1), 0 0 12px #ffffff !important;
+    transform: scale(1.14) !important; background: #f7dfa8 !important;
+  }
+  .ctl:focus, .pill:focus { background-color: rgba(233, 201, 138, 0.22) !important; border-color: var(--gold) !important; opacity: 1 !important; }
+
+  /* ---------- Latar Animasi Bergerak ---------- */
+  #scene, #scene-custom { position: fixed; inset: 0; z-index: 0; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+  #scene svg { width: 100%; height: 100%; display: block; }
+  #scene-custom { background-size: cover; background-position: center; opacity: 0; }
+  .overlay { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.88) 100%); }
+
+  .twinkle { animation: twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+  .firefly { animation: firefly 4s ease-in-out infinite alternate; fill: #e9c98a; filter: drop-shadow(0 0 6px #e9c98a); }
+  @keyframes firefly { 0% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-15px); } 100% { opacity: 0; transform: translateY(-30px); } }
+  .drift { animation: drift 35s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateX(-3%); } to { transform: translateX(3%); } }
+  .sway { transform-origin: bottom center; animation: sway 6s ease-in-out infinite alternate; }
+  @keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+  .sun-pulse { animation: sun-pulse 8s ease-in-out infinite alternate; transform-origin: center; }
+  @keyframes sun-pulse { 0% { transform: scale(0.95); opacity: 0.85; } 100% { transform: scale(1.05); opacity: 1; } }
+  .fly-across { animation: fly-across 45s linear infinite; }
+  @keyframes fly-across { from { transform: translateX(-300px); } to { transform: translateX(1900px); } }
+  .wave-back { animation: waveB 8s ease-in-out infinite alternate; }
+  @keyframes waveB { from { transform: translateX(-2%) translateY(0); } to { transform: translateX(2%) translateY(-10px); } }
+  .wave-mid { animation: waveM 6s ease-in-out infinite alternate-reverse; }
+  @keyframes waveM { from { transform: translateX(2%) translateY(0); } to { transform: translateX(-2%) translateY(-15px); } }
+  .wave-front { animation: waveF 5s ease-in-out infinite alternate; }
+  @keyframes waveF { from { transform: translateX(-3%) translateY(0); } to { transform: translateX(3%) translateY(-8px); } }
+  .shooting-star { animation: shoot 12s linear infinite; stroke-dasharray: 400; stroke-dashoffset: 400; opacity: 0; }
+  @keyframes shoot {
+    0%, 42% { stroke-dashoffset: 400; opacity: 0; transform: translate(0, 0); }
+    48% { stroke-dashoffset: 0; opacity: 1; transform: translate(0, 0); }
+    62% { stroke-dashoffset: -400; opacity: 0.9; transform: translate(-180px, 180px); }
+    72%, 100% { stroke-dashoffset: -400; opacity: 0; transform: translate(-300px, 300px); }
+  }
+
+  /* ---------- Layout Utama ---------- */
+  #app { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+
+  .top {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 70px 14px 20px; flex-wrap: wrap; width: 100%;
+  }
+  .brand { margin-right: auto; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.04em; opacity: 0.92; }
+  .brand b { color: var(--gold); font-weight: 600; }
+
+  .pill {
+    font-size: 0.85rem; color: var(--ink); background: var(--glass);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 9px 16px; cursor: pointer;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.15s, border-color 0.2s, background 0.2s; outline: none;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: rgba(233, 201, 138, 0.5); }
+  .pill svg { width: 16px; height: 16px; pointer-events: none; flex-shrink: 0; }
+  .pill .caret { font-size: 0.7rem; opacity: 0.7; margin-left: 2px; }
+
+  .fs-float {
+    position: fixed; top: 14px; right: 14px; z-index: 15;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--glass); color: var(--ink);
+    cursor: pointer; display: grid; place-items: center;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.15s, color 0.2s, border-color 0.2s;
+  }
+  .fs-float:hover { border-color: var(--gold); color: var(--gold); }
+  .fs-float svg { width: 20px; height: 20px; pointer-events: none; }
+
+  /* ---------- Area Ayat ---------- */
+  .stage {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 2vh 4vw; overflow-y: auto; overflow-x: hidden;
+    scroll-behavior: smooth; scrollbar-width: none; pointer-events: auto;
+  }
+  .stage::-webkit-scrollbar { display: none; }
+  .verse {
+    margin: auto auto 8vh auto;
+    max-width: 960px; width: 100%; text-align: center; padding: 16px 0;
+    transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; pointer-events: none;
+  }
+  .verse.hide { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+
+  .surah-title { font-size: calc(1.3rem * var(--info-scale)); font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin: 0 0 4px; }
+  .surah-sub { font-size: calc(1.15rem * var(--info-scale)); font-style: italic; color: var(--muted); margin: 0 0 24px; letter-spacing: 0.04em; }
+  .bismillah { font-family: var(--font-ar); font-size: calc(clamp(1.5rem, 3.5vw, 2.4rem) * var(--info-scale)); color: var(--gold); margin: 20px 0 24px; text-shadow: 0 2px 16px rgba(0,0,0,0.8); }
+
+  .ar-text {
+    font-family: var(--font-ar); font-weight: 400;
+    font-size: calc(clamp(1.6rem, 4vw, 2.6rem) * var(--ar-scale));
+    line-height: 1.85; direction: rtl; margin: 0 0 16px; color: #fffdf7;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.85); word-spacing: 2px; word-wrap: break-word;
+  }
+  .id-text {
+    font-family: var(--font-id); font-weight: 500;
+    font-size: calc(clamp(1.2rem, 2.8vw, 1.8rem) * var(--id-scale));
+    line-height: 1.65; color: #fbf6e8; margin: 0 auto; max-width: 44em;
+    text-shadow: 0 2px 14px rgba(0,0,0,0.9);
+  }
+  .ayah-footer {
+    display: inline-flex; align-items: center; gap: 12px; margin-top: 24px; padding: 6px 18px;
+    border-radius: 999px; background: rgba(0,0,0,0.35); border: 1px solid var(--line);
+    font-size: calc(1.1rem * var(--info-scale)); font-weight: 500; color: var(--gold); letter-spacing: 0.05em;
+  }
+
+  /* ---------- Dock Pemutar ---------- */
+  .dock {
+    margin: 0 auto 18px; width: min(640px, 94vw);
+    background: var(--glass); border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: 14px 20px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    display: flex; flex-direction: column; gap: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+  .row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  
+  .play {
+    width: 54px; height: 54px; border-radius: 50%; border: none;
+    background: var(--gold); color: #1b1608; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(233, 201, 138, 0.25);
+    transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+  }
+  .play svg { width: 24px; height: 24px; pointer-events: none; transition: margin 0.2s; }
+  .play:not(.is-playing) svg { margin-left: 3px; }
+  .play.is-playing svg { margin-left: 0; }
+  .play:hover { transform: scale(1.06); background: #f3d89c; }
+
+  .ctl {
+    background: rgba(255,255,255,0.03); border: 1px solid transparent; color: var(--ink);
+    cursor: pointer; opacity: 0.85; width: 42px; height: 42px; border-radius: 50%;
+    display: grid; place-items: center; flex-shrink: 0;
+    transition: transform 0.15s, opacity 0.2s, color 0.2s, background 0.2s;
+  }
+  .ctl svg { width: 22px; height: 22px; pointer-events: none; }
+  .ctl:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+  .ctl.fx-on { color: var(--gold); opacity: 1; border-color: rgba(233, 201, 138, 0.35); }
+
+  .meta { flex: 1; min-width: 0; font-size: 0.92rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; text-align: center; }
+  .time-lbl { font-size: 0.74rem; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 36px; text-align: center; }
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar {
+    flex: 1; height: 6px; background: rgba(255,255,255,0.14);
+    border-radius: 99px; overflow: hidden; cursor: pointer; position: relative;
+  }
+  .progress-fill { height: 100%; width: 0%; background: var(--gold); border-radius: 99px; transition: width 0.15s linear; }
+
+  /* ---------- Modal Picker TV ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 25; background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center; padding: 4vh 4vw;
+  }
+  .modal-backdrop.open { display: flex; animation: popIn 0.2s ease; }
+  .picker-box {
+    width: min(760px, 94vw); max-height: 82vh; background: var(--glass-strong); border: 1px solid var(--line);
+    border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+  }
+  .picker-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+  .picker-title { font-size: 1rem; font-weight: 600; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; margin: 0; }
+  .picker-grid {
+    display: grid; gap: 8px; overflow-y: auto; padding: 6px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+  }
+  .picker-grid.ayah-mode { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+  .picker-grid.qori-mode { grid-template-columns: 1fr; }
+  .picker-item {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 12px 14px;
+    font-size: 0.9rem; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    transition: transform 0.12s, background 0.15s, border-color 0.15s;
+  }
+  .picker-item:hover { border-color: rgba(233, 201, 138, 0.4); background: rgba(255,255,255,0.09); }
+  .picker-item.active { background: var(--gold); color: #1b1608; border-color: var(--gold); font-weight: 600; }
+
+  /* ---------- Panel Pengaturan (Optimasi Android TV Layar Lebar) ---------- */
+  .panel {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(960px, 92vw); max-height: 88vh;
+    overflow-y: auto; background: var(--glass-strong); border: 1px solid rgba(233, 201, 138, 0.25);
+    border-radius: 26px; padding: 24px 28px;
+    backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+    box-shadow: 0 32px 84px rgba(0, 0, 0, 0.92), 0 0 35px rgba(233, 201, 138, 0.08);
+    display: none; z-index: 30;
+    scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+  }
+  .panel.open { display: block; }
+  .close-btn {
+    background: rgba(255, 255, 255, 0.08); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 50%; width: 42px; height: 42px; font-size: 1.2rem; cursor: pointer;
+    display: grid; place-items: center; transition: all 0.2s ease; flex-shrink: 0;
+  }
+  .close-btn:hover { background: rgba(233, 201, 138, 0.25); color: var(--gold); border-color: var(--gold); }
+
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 14px; margin-bottom: 18px;
+  }
+  .panel-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .panel-head h2 {
+    margin: 0; font-size: 1.15rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+  }
+  .panel-subtitle { font-size: 0.82rem; color: var(--muted); font-weight: 400; }
+
+  /* Grid 2 Kolom TV Android */
+  .panel-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  }
+  @media (max-width: 768px) {
+    .panel-grid { grid-template-columns: 1fr; }
+    .panel { width: 95vw; padding: 16px; max-height: 90vh; }
+  }
+
+  .settings-card {
+    background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .settings-card:hover {
+    border-color: rgba(233, 201, 138, 0.28); background: rgba(255, 255, 255, 0.05);
+  }
+  .card-title {
+    display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 600;
+    color: var(--gold); letter-spacing: 0.04em; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 2px;
+  }
+  .card-icon { font-size: 1.1rem; }
+  .setting-label {
+    font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; margin-top: 4px; display: block;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-size: 0.88rem; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.06); cursor: pointer; color: var(--ink);
+    transition: all 0.18s ease; display: inline-flex; align-items: center; justify-content: center;
+    min-height: 38px;
+  }
+  .chip:hover { border-color: rgba(233, 201, 138, 0.5); background: rgba(255, 255, 255, 0.1); }
+  .chip.on {
+    background: var(--gold); color: #141006; border-color: var(--gold); font-weight: 600;
+    box-shadow: 0 4px 14px rgba(233, 201, 138, 0.35);
+  }
+
+  .stepper-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px; padding: 8px 12px; margin: 4px 0;
+  }
+  .stepper-lbl { font-size: 0.88rem; font-weight: 500; color: var(--ink); }
+  .stepper-controls { display: flex; align-items: center; gap: 8px; }
+  .step-btn {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.08); color: var(--ink); font-size: 1.15rem; font-weight: 600;
+    cursor: pointer; display: grid; place-items: center; transition: all 0.15s ease;
+  }
+  .step-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(233, 201, 138, 0.15); }
+  .step-val { min-width: 48px; text-align: center; font-size: 0.92rem; font-weight: 600; color: var(--gold); }
+
+  .input-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .input-text {
+    flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.45); color: white; outline: none; font-size: 0.86rem;
+    transition: border-color 0.2s;
+  }
+  .input-text:focus { border-color: var(--gold); }
+  .btn-apply {
+    padding: 10px 18px; border-radius: 12px; background: var(--gold); color: #120e03;
+    border: none; font-weight: 600; font-size: 0.86rem; cursor: pointer; white-space: nowrap;
+    transition: transform 0.15s, background 0.15s; min-height: 40px;
+  }
+  .btn-apply:hover { background: #f7dfa8; }
+
+  .tv-shortcut-hints {
+    margin-top: auto; padding: 10px 12px; border-radius: 12px;
+    background: rgba(233, 201, 138, 0.06); border: 1px dashed rgba(233, 201, 138, 0.22);
+    font-size: 0.8rem; color: rgba(247, 242, 228, 0.85); line-height: 1.5;
+  }
+  .tv-shortcut-hints b { color: var(--gold); }
+
+  /* Mode Layar Penuh (Immersive) */
+  body.immersive .top, body.immersive .panel, body.immersive .progress-wrap,
+  body.immersive .dock .row > *:not(#play):not(#prevAyah):not(#nextAyah) { display: none !important; }
+  body.immersive .dock { background: transparent; border: none; box-shadow: none; backdrop-filter: none; padding: 0; width: auto; margin-bottom: 3.5vh; }
+  body.immersive .dock .row { justify-content: center; gap: 20px; }
+  body.immersive .play { width: 64px; height: 64px; }
+  body.immersive .play svg { width: 28px; height: 28px; }
+  body.immersive .dock .ctl { background: var(--glass); border: 1px solid var(--line); border-radius: 50%; width: 48px; height: 48px; padding: 0; }
+
+  /* Perbaikan Offset Mobile */
+  @media (max-width: 720px) {
+    .brand { display: none; }
+    .top { padding: 10px 14px; padding-right: 60px; gap: 6px; justify-content: center; }
+    .pill { padding: 7px 10px; font-size: 0.75rem; flex-shrink: 1; min-width: 0; }
+    #btnSurah { max-width: 145px; }
+    #btnAyah { max-width: 90px; }
+    #btnReciter { max-width: 130px; }
+    .dock { border-radius: 22px; padding: 10px 14px; margin-bottom: 12px; }
+    .meta { display: none; }
+    .row { justify-content: space-evenly; }
+    .stage { padding: 2vh 4vw; }
+  }
+</style>
+</head>
+<body>
+
+<audio id="audio-rain" src="https://cdn.jsdelivr.net/gh/karthiknvd/noctune@main/sounds/rain.mp3" loop crossorigin="anonymous" preload="none"></audio>
+<audio id="audio-thunder" src="https://cdn.jsdelivr.net/gh/karthiknvd/noctune@main/sounds/thunder.mp3" loop crossorigin="anonymous" preload="none"></audio>
+<audio id="audio-river" src="https://cdn.jsdelivr.net/gh/karthiknvd/noctune@main/sounds/river.mp3" loop crossorigin="anonymous" preload="none"></audio>
+<audio id="audio-forest" src="https://cdn.jsdelivr.net/gh/karthiknvd/noctune@main/sounds/night.mp3" loop crossorigin="anonymous" preload="none"></audio>
+<audio id="audio-fire" src="https://cdn.jsdelivr.net/gh/karthiknvd/noctune@main/sounds/campfire.mp3" loop crossorigin="anonymous" preload="none"></audio>
+
+<div id="scene"></div>
+<div id="scene-custom"></div>
+<div class="overlay"></div>
+
+<div id="app">
+  <div class="top" id="topBar">
+    <div class="brand"><b>Al-Quran</b> · Immersive</div>
+    <button class="pill" id="btnSurah" title="Pilih Surah"><span id="lblSurah">1. Al-Fatihah</span><span class="caret">▾</span></button>
+    <button class="pill" id="btnAyah" title="Pilih Ayat"><span id="lblAyah">Ayat 1</span><span class="caret">▾</span></button>
+    <button class="pill" id="btnReciter" title="Pilih Qori"><span id="lblReciter">Mishary Alafasy</span><span class="caret">▾</span></button>
+    <button class="pill" id="btnPanel" title="Buka Setelan"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg><span>Setelan</span></button>
+  </div>
+
+  <button class="fs-float" id="btnFs" title="Layar Penuh (Otomatis Play)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+  </button>
+
+  <div class="modal-backdrop" id="pickerModal">
+    <div class="picker-box">
+      <div class="picker-header">
+        <h3 class="picker-title" id="pickerTitle">Pilih</h3>
+        <button class="close-btn" id="btnClosePicker" title="Tutup">✕</button>
+      </div>
+      <div class="picker-grid" id="pickerGrid"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="settingsBackdrop">
+    <div class="panel open" id="panel">
+      <div class="panel-head">
+        <div class="panel-title-wrap">
+          <h2>⚙️ Setelan Aplikasi</h2>
+          <span class="panel-subtitle">Gunakan tombol arah & OK pada remote TV atau mouse untuk mengatur</span>
+        </div>
+        <button id="btnClosePanel" class="close-btn" title="Tutup Setelan">✕</button>
+      </div>
+
+      <div class="panel-grid">
+        <!-- Kolom/Kartu 1: Tampilan & Latar -->
+        <div class="settings-card">
+          <div class="card-title">
+            <span class="card-icon">🎨</span>
+            <span>Tampilan & Wallpaper</span>
+          </div>
+
+          <label class="setting-label">Latar Animasi</label>
+          <div class="chips" id="sceneChips">
+            <button class="chip on" data-q="night">🌙 Malam</button>
+            <button class="chip" data-q="dawn">🌅 Fajar</button>
+            <button class="chip" data-q="mosque">🕌 Masjid</button>
+            <button class="chip" data-q="forest">🌲 Hutan</button>
+            <button class="chip" data-q="sea">🌊 Pantai</button>
+          </div>
+
+          <label class="setting-label" style="margin-top: 10px;">Wallpaper Custom Pinterest / URL</label>
+          <div class="input-row">
+            <input type="text" id="wallInput" class="input-text" placeholder="Tempel tautan pin.it atau url .jpg">
+            <button class="btn-apply" id="btnWallSearch">Terapkan</button>
+          </div>
+        </div>
+
+        <!-- Kolom/Kartu 2: Suara Alam Ambien -->
+        <div class="settings-card">
+          <div class="card-title">
+            <span class="card-icon">🌿</span>
+            <span>Suara Alam Ambien</span>
+          </div>
+
+          <label class="setting-label">Pilihan Efek Suara</label>
+          <div class="chips" id="soundChips"></div>
+
+          <label class="setting-label" style="margin-top: 10px;">Volume Ambien</label>
+          <div class="stepper-row">
+            <span class="stepper-lbl">Volume Suara Alam</span>
+            <div class="stepper-controls">
+              <button class="step-btn" id="volDown" title="Kurangi Volume">−</button>
+              <span class="step-val" id="volVal">50%</span>
+              <button class="step-btn" id="volUp" title="Tambah Volume">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom/Kartu 3: Tipografi & Ukuran Teks -->
+        <div class="settings-card">
+          <div class="card-title">
+            <span class="card-icon">✍️</span>
+            <span>Tipografi & Ukuran Teks</span>
+          </div>
+
+          <label class="setting-label">Font Teks Arab</label>
+          <div class="chips" id="fontArChips">
+            <button class="chip" data-v="'Amiri', serif">Amiri</button>
+            <button class="chip" data-v="'Noto Naskh Arabic', serif">Noto Naskh</button>
+            <button class="chip on" data-v="'Scheherazade New', 'Lateef'">Scheherazade</button>
+            <button class="chip" data-v="'Lateef', serif">Lateef</button>
+          </div>
+
+          <label class="setting-label" style="margin-top: 8px;">Font Terjemahan</label>
+          <div class="chips" id="fontIdChips">
+            <button class="chip on" data-v="'Plus Jakarta Sans', sans-serif">Plus Jakarta</button>
+            <button class="chip" data-v="'Inter', sans-serif">Inter</button>
+            <button class="chip" data-v="'Lora', serif">Lora</button>
+            <button class="chip" data-v="'Cormorant Garamond', serif">Cormorant</button>
+          </div>
+
+          <label class="setting-label" style="margin-top: 8px;">Skala Ukuran Teks</label>
+          <div class="stepper-row">
+            <span class="stepper-lbl">Ukuran Teks Arab</span>
+            <div class="stepper-controls">
+              <button class="step-btn" id="arDown" title="Perkecil Arab">−</button>
+              <span class="step-val" id="arVal">90%</span>
+              <button class="step-btn" id="arUp" title="Perbesar Arab">+</button>
+            </div>
+          </div>
+          <div class="stepper-row">
+            <span class="stepper-lbl">Ukuran Terjemahan</span>
+            <div class="stepper-controls">
+              <button class="step-btn" id="idDown" title="Perkecil Terjemahan">−</button>
+              <span class="step-val" id="idVal">70%</span>
+              <button class="step-btn" id="idUp" title="Perbesar Terjemahan">+</button>
+            </div>
+          </div>
+          <div class="stepper-row">
+            <span class="stepper-lbl">Ukuran Judul & Info</span>
+            <div class="stepper-controls">
+              <button class="step-btn" id="infoDown" title="Perkecil Info">−</button>
+              <span class="step-val" id="infoVal">60%</span>
+              <button class="step-btn" id="infoUp">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom/Kartu 4: Database & Petunjuk TV -->
+        <div class="settings-card">
+          <div class="card-title">
+            <span class="card-icon">🌐</span>
+            <span>Sumber Database Al-Quran</span>
+          </div>
+
+          <label class="setting-label">Pilih Jalur API</label>
+          <div class="chips" id="apiChips">
+            <button class="chip on" data-v="equran">EQuran.id (Kemenag)</button>
+            <button class="chip" data-v="quranjson">QuranJSON (GitHub)</button>
+            <button class="chip" data-v="alqurancloud">AlQuran.cloud</button>
+          </div>
+
+          <div class="tv-shortcut-hints">
+            <b>💡 Navigasi Remote TV:</b><br>
+            • Tombol Panah (Arah): Berpindah antar opsi & kolom<br>
+            • Tombol OK / Select: Memilih opsi atau mengaktifkan<br>
+            • Tombol Back / Kembali: Menutup jendela setelan
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="verse" id="verse"><p class="status">Memuat mushaf…</p></div>
+  </div>
+
+  <div class="dock" id="playerDock">
+    <div class="row">
+      <button class="ctl" id="prevAyah" title="Ayat Sebelumnya (←)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+      
+      <button class="play" id="play" aria-label="Putar / Jeda" title="Putar / Jeda">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><polygon points="8,5 19,12 8,19" /></svg>
+      </button>
+      
+      <button class="ctl" id="nextAyah" title="Ayat Berikutnya (→)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+      
+      <div class="meta" id="meta">—</div>
+      
+      <button class="ctl" id="btnRepeat" title="Mode Putar"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
+      <button class="ctl" id="btnFx" title="Suara Alam Ambien"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+    </div>
+    <div class="progress-wrap">
+      <span class="time-lbl" id="curTime">0:00</span>
+      <div class="progress-bar" id="seekBar" title="Klik untuk menggeser waktu">
+        <div class="progress-fill" id="seekFill"></div>
+      </div>
+      <span class="time-lbl" id="durTime">0:00</span>
+    </div>
+  </div>
+
+  <audio id="audio" preload="auto"></audio>
+</div>
+
+<script>
+/* =========================================================
+   PWA SCRIPT (Otomatis & Stabil)
+   ========================================================= */
+let deferredPrompt;
+(function setupPWA() {
+  const manifestJSON = {
+    "name": "Al-Quran Immersive",
+    "short_name": "Quran",
+    "start_url": window.location.pathname || "/",
+    "display": "standalone",
+    "background_color": "#070a09",
+    "theme_color": "#070a09",
+    "icons": [
+      { "src": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23070a09'/%3E%3Ctext y='75' x='18' font-size='60'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+      { "src": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23070a09'/%3E%3Ctext y='75' x='18' font-size='60'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    ]
+  };
+  const manifestData = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestJSON));
+  document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestData}">`);
+
+  if ('serviceWorker' in navigator) {
+    const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => new Response('Quran Offline', {status: 200}))); });`;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+})();
+
+/* =========================================================
+   VARIABEL & DATA QORI
+   ========================================================= */
+const KEY = "quran-immersive-v17";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const QORIS = [
+  { id: "Alafasy_128kbps", name: "Mishary Alafasy" },
+  { id: "Abdul_Basit_Murattal_192kbps", name: "Abdul Basit (Murattal)" },
+  { id: "Abdul_Basit_Mujawwad_128kbps", name: "Abdul Basit (Mujawwad)" },
+  { id: "Husary_128kbps", name: "Mahmoud Al-Husary" },
+  { id: "Minshawy_Murattal_128kbps", name: "Al-Minshawi" },
+  { id: "Abdurrahmaan_As-Sudais_192kbps", name: "Abdurrahman As-Sudais" },
+  { id: "Yasser_Ad-Dussary_128kbps", name: "Yasser Al-Dosari" }
+];
+
+const ICONS = {
+  play: `<polygon points="8,5 19,12 8,19" />`,
+  pause: `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`,
+  fsEnter: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`,
+  fsExit: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>`,
+  repeatAll: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`,
+  repeatOne: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"/></svg>`,
+  repeatSurah: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`
+};
+
+function safeParse(s) { try { return JSON.parse(s) || {}; } catch (e) { return {}; } }
+
+let surahsList = [];
+let state = Object.assign({
+  last: 1, lastAyah: 0, reciter: "Alafasy_128kbps", 
+  apiSource: "equran", scene: "night", customBg: "",
+  fontAr: "'Scheherazade New', 'Lateef'", fontId: "'Plus Jakarta Sans', sans-serif",
+  arScale: 0.9, idScale: 0.7, infoScale: 0.6, vol: 0.5, repeat: "all", sounds: ["rain"]
+}, safeParse(localStorage.getItem(KEY)));
+if (state.fontAr === "'Amiri', serif" || state.fontAr === "'Scheherazade New', serif" || state.fontAr === "'Scheherazade New', 'Noto Naskh Arabic', 'Amiri'") state.fontAr = "'Scheherazade New', 'Lateef'";
+
+let surah = null; let idx = 0; let playing = false; let swapTimer = null;
+let lastTriggerBtn = null;
+
+function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function fmtTime(sec) { if (!sec || !isFinite(sec)) return "0:00"; const m = Math.floor(sec / 60); const s = Math.floor(sec % 60); return `${m}:${s < 10 ? "0" : ""}${s}`; }
+function pad3(n) { return String(n).padStart(3, '0'); }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, Math.round(v * 100) / 100)); }
+
+/* ---------- Generator Latar Animasi Bergerak ---------- */
+const SVG_SCENES = {
+  night: { sky: ["#060b1a", "#142344", "#2b3f6b"], body: "#03060d", kind: "night" },
+  dawn:  { sky: ["#24274d", "#b56567", "#f2b880"], body: "#241c2e", kind: "sun" },
+  mosque:{ sky: ["#161430", "#633859", "#de8456"], body: "#0e0a1a", kind: "mosque" },
+  forest:{ sky: ["#173024", "#4e735b", "#cfe0ba"], body: "#08170e", kind: "forest" },
+  sea:   { sky: ["#174363", "#62a6bd", "#f2e0b3"], body: "#113847", kind: "sea" }
+};
+
+function renderScene(key) {
+  const s = SVG_SCENES[key] || SVG_SCENES.night;
+  let layers = "";
+
+  if (s.kind === "night") {
+    layers += Array.from({length: 130}, (_, i) => `<circle class="twinkle" cx="${(i*197)%1600}" cy="${(i*89)%600}" r="${(i%5)*0.35+0.5}" fill="#fff" style="animation-delay:${(i*0.37%4).toFixed(2)}s; animation-duration:${3+(i%3)}s"/>`).join("");
+    layers += `<circle cx="1250" cy="200" r="75" fill="#fdfae8" filter="drop-shadow(0 0 50px #fdfae8)"/>`;
+    layers += `<line class="shooting-star" x1="1400" y1="50" x2="1000" y2="450" stroke="url(#shoot-grad)" stroke-width="2.5" style="animation-delay: 4s;"/>`;
+  }
+  if (s.kind === "sun") {
+    // Matahari terbit di balik cakrawala + halo berlapis
+    layers += `<circle cx="1080" cy="430" r="200" fill="#ffb347" opacity="0.14"/>`;
+    layers += `<circle cx="1080" cy="430" r="140" fill="#ffc76b" opacity="0.22"/>`;
+    layers += `<circle class="sun-pulse" cx="1080" cy="430" r="86" fill="#fff0c4" filter="drop-shadow(0 0 55px #ffb347)"/>`;
+    // Pita cahaya fajar di langit
+    layers += `<g class="drift" style="animation-duration: 90s; opacity: 0.35;"><rect x="0" y="330" width="1600" height="26" rx="13" fill="#ffd9a0"/><rect x="0" y="382" width="1600" height="16" rx="8" fill="#ffc9a0" opacity="0.7"/></g>`;
+    // Awan senja berlapis
+    layers += `<g class="drift" style="animation-duration: 120s; opacity: 0.3;" fill="#ffd0b0"><ellipse cx="330" cy="250" rx="120" ry="30"/><ellipse cx="430" cy="240" rx="90" ry="24"/><ellipse cx="250" cy="258" rx="70" ry="20"/></g>`;
+    layers += `<g class="drift" style="animation-duration: 150s; animation-delay: -40s; opacity: 0.22;" fill="#ffe0c0"><ellipse cx="1180" cy="200" rx="140" ry="26"/><ellipse cx="1290" cy="192" rx="95" ry="20"/></g>`;
+    layers += `<g class="drift" style="animation-duration: 180s; animation-delay: -90s; opacity: 0.16;" fill="#ffd9c0"><ellipse cx="760" cy="150" rx="170" ry="22"/><ellipse cx="900" cy="144" rx="110" ry="18"/></g>`;
+    // Burung camar melintas (dua kelompok, arah berbeda)
+    layers += `<g class="fly-across" style="animation-duration: 55s; animation-delay: -10s;" fill="none" stroke="${s.body}" stroke-width="2.6" stroke-linecap="round" opacity="0.6"><path d="M0 250 q14 -12 28 0"/><path d="M28 250 q14 -12 28 0"/><path d="M-52 284 q11 -9 22 0"/><path d="M-30 284 q11 -9 22 0"/></g>`;
+    layers += `<g class="fly-across" style="animation-duration: 90s; animation-delay: -55s;" fill="none" stroke="${s.body}" stroke-width="2" stroke-linecap="round" opacity="0.4"><path d="M0 180 q10 -9 20 0"/><path d="M20 180 q10 -9 20 0"/></g>`;
+    // Bukit berlapis di cakrawala
+    layers += `<path d="M-100 660 Q180 545 420 620 Q640 690 900 600 Q1160 512 1700 630 L1700 900 L-100 900 Z" fill="#3a2a3f" opacity="0.75"/>`;
+    layers += `<path d="M-100 700 Q260 605 520 665 Q800 730 1080 650 Q1380 566 1700 690 L1700 900 L-100 900 Z" fill="#2a1e30" opacity="0.9"/>`;
+    // Danau + pantulan matahari
+    layers += `<path d="M-100 742 Q400 716 800 742 T1700 742 L1700 900 L-100 900 Z" fill="#241a2c"/>`;
+    layers += `<g class="drift" style="animation-duration: 70s; opacity: 0.5;"><rect x="1010" y="756" width="140" height="5" rx="2.5" fill="#ffcf8a"/><rect x="1035" y="774" width="90" height="4" rx="2" fill="#ffcf8a" opacity="0.8"/><rect x="1055" y="790" width="120" height="4" rx="2" fill="#ffcf8a" opacity="0.6"/><rect x="1020" y="806" width="70" height="3" rx="1.5" fill="#ffcf8a" opacity="0.45"/></g>`;
+    // Siluet pepohonan kecil di tepi danau
+    layers += `<g fill="#1a1220" opacity="0.9"><path d="M250 742 L266 690 L282 742 Z"/><path d="M300 742 L312 706 L324 742 Z"/><path d="M360 742 L376 684 L392 742 Z"/><path d="M1340 742 L1356 692 L1372 742 Z"/><path d="M1396 742 L1408 708 L1420 742 Z"/></g>`;
+  }
+  if (s.kind === "mosque") {
+    // Bulan sabit + cahaya lembut malam
+    layers += `<circle cx="1200" cy="150" r="58" fill="#f6eedb" opacity="0.9"/>`;
+    layers += `<path d="M1175 118 A44 44 0 1 0 1220 182 A52 52 0 1 1 1175 118 Z" fill="#161430"/>`;
+    // Bintang berkelip
+    layers += `<g class="twinkle" style="animation-duration: 3.2s;"><circle cx="980" cy="90" r="1.2" fill="#fff"/><circle cx="1040" cy="70" r="1" fill="#fff"/><circle cx="1120" cy="95" r="1.4" fill="#fff"/><circle cx="1260" cy="65" r="1" fill="#fff"/><circle cx="1340" cy="85" r="1.2" fill="#fff"/></g>`;
+    layers += `<g class="twinkle" style="animation-duration: 4s; animation-delay: 1.2s;"><circle cx="1005" cy="110" r="0.8" fill="#fff"/><circle cx="1085" cy="80" r="0.9" fill="#fff"/><circle cx="1175" cy="105" r="0.8" fill="#fff"/><circle cx="1295" cy="95" r="0.9" fill="#fff"/><circle cx="1385" cy="75" r="0.8" fill="#fff"/></g>`;
+    // Awan bergerak lambat
+    layers += `<g class="drift" style="animation-duration: 90s; opacity: 0.12;"><ellipse cx="200" cy="170" rx="90" ry="26"/><ellipse cx="260" cy="165" rx="70" ry="20"/><ellipse cx="150" cy="175" rx="60" ry="18"/></g>`;
+    layers += `<g class="drift" style="animation-duration: 120s; animation-direction: reverse; opacity: 0.1;"><ellipse cx="900" cy="140" rx="110" ry="28"/><ellipse cx="980" cy="135" rx="80" ry="22"/><ellipse cx="840" cy="145" rx="70" ry="20"/></g>`;
+    // Lapisan bukit untuk kedalaman
+    layers += `<g fill="#120f26"><path d="M0 620 Q200 520 420 620 L420 720 L0 720 Z"/><path d="M320 620 Q520 480 720 620 L720 720 L320 720 Z"/><path d="M620 620 Q820 500 1020 620 L1020 720 L620 720 Z"/><path d="M920 620 Q1120 520 1440 620 L1440 720 L920 720 Z"/></g>`;
+    // ===== BANGUNAN MASJID =====
+    // Badan utama (aula) + dinding dasar
+    layers += `<g fill="${s.body}">
+      <rect x="500" y="560" width="620" height="160"/>
+      <rect x="470" y="690" width="680" height="30" rx="6"/>
+    </g>`;
+    // Lengkungan mihrab/portal di tengah
+    layers += `<g fill="#1b1533">
+      <path d="M770 720 L770 640 A40 40 0 0 1 850 640 L850 720 Z"/>
+      <path d="M700 720 L700 660 A26 26 0 0 1 752 660 L752 720 Z"/>
+      <path d="M868 720 L868 660 A26 26 0 0 1 920 660 L920 720 Z"/>
+    </g>`;
+    // Jendela kisi bercahaya keemasan
+    layers += `<g fill="#f5d16e" opacity="0.85">
+      <rect x="612" y="600" width="16" height="34" rx="7"/>
+      <rect x="646" y="600" width="16" height="34" rx="7"/>
+      <rect x="958" y="600" width="16" height="34" rx="7"/>
+      <rect x="992" y="600" width="16" height="34" rx="7"/>
+    </g>`;
+    // Drum + kubah utama (bawang) + finial bulan sabit
+    layers += `<g fill="${s.body}">
+      <rect x="700" y="520" width="220" height="46" rx="8"/>
+      <path d="M700 524 C700 452 742 428 810 396 C878 428 920 452 920 524 Z"/>
+      <path d="M810 396 C810 380 812 372 818 362 L802 362 C808 372 810 380 810 396 Z"/>
+    </g>`;
+    layers += `<circle cx="810" cy="356" r="7" fill="#f5d16e" opacity="0.95"/>`;
+    // Kubah pendamping kiri & kanan
+    layers += `<g fill="${s.body}">
+      <path d="M540 560 C540 512 566 498 596 480 C626 498 652 512 652 560 Z"/>
+      <path d="M968 560 C968 512 994 498 1024 480 C1054 498 1080 512 1080 560 Z"/>
+    </g>`;
+    // Dua menara berundak + kubah kecil + bulan sabit
+    layers += `<g fill="${s.body}">
+      <rect x="452" y="470" width="34" height="250" rx="4"/>
+      <rect x="444" y="440" width="50" height="34" rx="5"/>
+      <rect x="448" y="404" width="42" height="40" rx="5"/>
+      <path d="M448 406 C448 378 462 368 469 356 C476 368 490 378 490 406 Z"/>
+      <rect x="1124" y="470" width="34" height="250" rx="4"/>
+      <rect x="1116" y="440" width="50" height="34" rx="5"/>
+      <rect x="1120" y="404" width="42" height="40" rx="5"/>
+      <path d="M1120 406 C1120 378 1134 368 1141 356 C1148 368 1162 378 1162 406 Z"/>
+    </g>`;
+    layers += `<g fill="#f5d16e" opacity="0.9">
+      <circle cx="469" cy="352" r="5"/><circle cx="1141" cy="352" r="5"/>
+    </g>`;
+    // Jendela menara
+    layers += `<g fill="#f5d16e" opacity="0.75">
+      <rect x="462" y="500" width="14" height="22" rx="6"/>
+      <rect x="1134" y="500" width="14" height="22" rx="6"/>
+    </g>`;
+    // Awan tipis dekat atap
+    layers += `<g class="drift" style="animation-duration: 150s; opacity: 0.08;"><ellipse cx="650" cy="480" rx="60" ry="16"/><ellipse cx="700" cy="476" rx="50" ry="14"/></g>`;
+  }
+  if (s.kind === "forest") {
+    // Bulan purnama lembut di balik pepohonan
+    layers += `<g class="sky-moon" opacity="0.85"><circle cx="1180" cy="300" r="86" fill="#fff3d2" opacity="0.18"/><circle cx="1180" cy="300" r="62" fill="#fff3d2" opacity="0.5"/><circle cx="1180" cy="300" r="46" fill="#fff8e6"/><circle cx="1164" cy="286" r="7" fill="#e8dcbc" opacity="0.5"/><circle cx="1196" cy="312" r="10" fill="#e8dcbc" opacity="0.35"/><circle cx="1194" cy="284" r="5" fill="#e8dcbc" opacity="0.4"/></g>`;
+    // Bintang berkelip
+    layers += Array.from({length: 26}, (_, i) => `<circle class="twinkle" cx="${(i*179+40)%1600}" cy="${40+(i*71)%330}" r="${i%3===0?2.2:1.4}" fill="#fff" style="animation-delay: -${(i%7)*0.6}s;"/>`).join("");
+    // Pohon pinus berundak (helper: batang + 3 tingkat dedaunan)
+    const pine = (x, base, h, w, fill, op, delay) => {
+      let t = `<g class="sway" opacity="${op}" style="animation-delay: -${delay}s; transform-origin: ${x}px ${base}px;">`;
+      t += `<rect x="${x - w * 0.06}" y="${base - h * 0.16}" width="${w * 0.12}" height="${h * 0.18}" fill="${fill}"/>`;
+      t += `<path d="M${x} ${base - h} L${x + w * 0.5} ${base - h * 0.42} L${x - w * 0.5} ${base - h * 0.42}Z" fill="${fill}"/>`;
+      t += `<path d="M${x} ${base - h * 0.82} L${x + w * 0.62} ${base - h * 0.24} L${x - w * 0.62} ${base - h * 0.24}Z" fill="${fill}"/>`;
+      t += `<path d="M${x} ${base - h * 0.62} L${x + w * 0.74} ${base - h * 0.04} L${x - w * 0.74} ${base - h * 0.04}Z" fill="${fill}"/>`;
+      return t + `</g>`;
+    };
+    // Lapisan belakang (jauh, pucat, kabut)
+    layers += Array.from({length: 11}, (_, i) => pine(i * 165 + 20, 700, 300 + (i % 3) * 40, 120, "#22382c", 0.5, (i % 5) * 0.7)).join("");
+    // Lapisan tengah
+    layers += Array.from({length: 9}, (_, i) => pine(i * 195 + 60, 720, 380 + (i % 4) * 45, 160, "#12261a", 0.85, (i % 4) * 0.6)).join("");
+    // Lapisan depan (dekat, paling gelap, besar)
+    layers += pine(120, 760, 520, 260, "#07160e", 1, 0.4);
+    layers += pine(1480, 770, 560, 280, "#07160e", 1, 1.1);
+    layers += pine(880, 780, 470, 240, "#0a1c12", 1, 0.8);
+    // Kabut tipis di antara lapisan
+    layers += `<g class="drift" style="animation-duration: 90s; opacity: 0.12;"><ellipse cx="500" cy="640" rx="420" ry="46" fill="#cfe0ba"/><ellipse cx="1100" cy="660" rx="380" ry="40" fill="#cfe0ba"/></g>`;
+    // Awan tinggi bergerak lambat
+    layers += `<g class="fly-across" fill="#fff" opacity="0.05" style="animation-duration: 75s;"><rect x="0" y="180" width="420" height="54" rx="27"/><rect x="70" y="152" width="260" height="48" rx="24"/></g>`;
+    // Kunang-kunang
+    layers += Array.from({length: 26}, (_, i) => `<circle class="firefly" cx="${(i * 137) % 1600}" cy="${520 + (i * 29) % 190}" r="${i % 4 === 0 ? 2.6 : 1.8}" fill="#f5ff9e" style="animation-delay: ${(i % 6) * 0.8}s;"/>`).join("");
+  }
+  if (s.kind === "sea") {
+    // Matahari senja + halo lembut
+    layers += `<g class="sun-pulse" style="transform-origin: 1120px 300px;"><circle cx="1120" cy="300" r="150" fill="#ffd9a0" opacity="0.10"/><circle cx="1120" cy="300" r="105" fill="#ffe6b8" opacity="0.20"/><circle cx="1120" cy="300" r="72" fill="#fff3d2" opacity="0.95"/></g>`;
+    // Bintang tipis di langit atas
+    layers += Array.from({length: 18}, (_, i) => `<circle class="twinkle" cx="${(i * 211 + 60) % 1600}" cy="${30 + (i * 53) % 220}" r="${i % 3 === 0 ? 2 : 1.3}" fill="#fff" style="animation-delay: -${(i % 6) * 0.7}s;"/>`).join("");
+    // Awan bergerak lambat
+    layers += `<g class="fly-across" fill="#fff" opacity="0.13" style="animation-duration: 70s;"><rect x="0" y="170" width="360" height="46" rx="23"/><rect x="60" y="146" width="220" height="42" rx="21"/></g>`;
+    layers += `<g class="fly-across" fill="#fff" opacity="0.09" style="animation-duration: 95s; animation-delay: -30s;"><rect x="0" y="250" width="300" height="38" rx="19"/><rect x="50" y="232" width="180" height="34" rx="17"/></g>`;
+    // Burung camar
+    layers += `<g class="fly-across" stroke="#2b3f4a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5" style="animation-duration: 42s;"><path d="M0 200 q12 -10 24 0 q12 -10 24 0"/><path d="M60 230 q10 -8 20 0 q10 -8 20 0"/><path d="M30 260 q9 -7 18 0 q9 -7 18 0"/></g>`;
+    // Pantulan matahari di permukaan air
+    layers += `<g class="drift" style="animation-duration: 40s; opacity: 0.55;"><rect x="1060" y="620" width="120" height="6" rx="3" fill="#ffe6b8"/><rect x="1040" y="646" width="160" height="7" rx="3.5" fill="#ffd9a0"/><rect x="1075" y="672" width="90" height="6" rx="3" fill="#ffe6b8"/><rect x="1050" y="700" width="140" height="8" rx="4" fill="#ffcf94" opacity="0.7"/></g>`;
+    // Pohon kelapa di sisi kiri (siluet)
+    layers += `<g fill="#0a1c22" opacity="0.95">
+      <path d="M150 720 Q162 640 148 560 Q144 588 140 620 Q136 660 138 720Z"/>
+      <path d="M148 566 Q100 540 62 552 Q104 552 142 578Z"/>
+      <path d="M148 566 Q196 536 240 548 Q196 550 154 578Z"/>
+      <path d="M148 560 Q120 508 96 500 Q124 516 142 566Z"/>
+      <path d="M148 560 Q178 506 206 500 Q176 518 154 566Z"/>
+      <circle cx="140" cy="580" r="7"/><circle cx="158" cy="584" r="6"/>
+    </g>`;
+    layers += `<g fill="#0a1c22" opacity="0.8" transform="translate(1420 40) scale(0.8)">
+      <path d="M150 720 Q162 640 148 560 Q144 588 140 620 Q136 660 138 720Z"/>
+      <path d="M148 566 Q100 540 62 552 Q104 552 142 578Z"/>
+      <path d="M148 566 Q196 536 240 548 Q196 550 154 578Z"/>
+      <path d="M148 560 Q120 508 96 500 Q124 516 142 566Z"/>
+      <path d="M148 560 Q178 506 206 500 Q176 518 154 566Z"/>
+    </g>`;
+  }
+
+  const groundY = s.kind === "sea" ? 640 : 660;
+  if (s.kind === "sea") {
+    // Lapisan air (jauh -> dekat), makin gelap ke depan
+    layers += `<path class="wave-back" d="M-100 ${groundY-20} Q300 ${groundY-90} 700 ${groundY-20} T1700 ${groundY-20} L1700 900 L-100 900Z" fill="#0a202b" opacity="0.9"/>`;
+    layers += `<path class="wave-back" d="M-100 ${groundY-24} Q320 ${groundY-96} 720 ${groundY-24} T1700 ${groundY-24}" fill="none" stroke="#7fc6d8" stroke-width="3" opacity="0.30"/>`;
+    layers += `<path class="wave-mid" d="M-100 ${groundY} Q400 ${groundY-60} 800 ${groundY} T1700 ${groundY} L1700 900 L-100 900Z" fill="#0c2936" opacity="0.9"/>`;
+    layers += `<path class="wave-mid" d="M-100 ${groundY-4} Q400 ${groundY-66} 800 ${groundY-4} T1700 ${groundY-4}" fill="none" stroke="#9ddcec" stroke-width="3.5" opacity="0.35"/>`;
+    layers += `<path class="wave-front" d="M-100 ${groundY+30} Q400 ${groundY-40} 800 ${groundY+30} T1700 ${groundY+30} L1700 900 L-100 900Z" fill="${s.body}"/>`;
+    layers += `<path class="wave-front" d="M-100 ${groundY+26} Q400 ${groundY-46} 800 ${groundY+26} T1700 ${groundY+26}" fill="none" stroke="#cdeef7" stroke-width="4" opacity="0.40"/>`;
+    // Buih di tepi ombak depan
+    layers += Array.from({length: 14}, (_, i) => `<circle class="wave-front" cx="${-40 + i * 130}" cy="${groundY + 34 + (i % 3) * 6}" r="${5 + (i % 3) * 3}" fill="#eaf9ff" opacity="0.35" style="animation-delay: -${(i % 5) * 0.6}s;"/>`).join("");
+    // Pasir pantai di sudut kiri bawah
+    layers += `<path class="drift" style="animation-duration: 120s; opacity: 0.95;" d="M-100 900 L-100 800 Q180 770 420 812 Q560 836 640 900Z" fill="#c9a978"/>`;
+    layers += `<path class="drift" style="animation-duration: 120s; opacity: 0.35;" d="M-100 812 Q180 782 420 824 Q560 848 640 900 L-100 900Z" fill="#e6cfa4"/>`;
+  } else {
+    layers += `<path class="drift" d="M-100 ${groundY-40} Q300 ${groundY-90} 600 ${groundY-40} T1300 ${groundY-50} T1700 ${groundY-40} L1700 900 L-100 900Z" fill="${s.body}" opacity="0.6"/>`;
+    layers += `<path class="drift" d="M-100 ${groundY} Q400 ${groundY-30} 800 ${groundY} T1700 ${groundY} L1700 900 L-100 900Z" fill="${s.body}" style="animation-delay: -10s;"/>`;
+  }
+
+  return `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sky[0]}"/><stop offset=".5" stop-color="${s.sky[1]}"/><stop offset="1" stop-color="${s.sky[2]}"/></linearGradient>
+      <linearGradient id="shoot-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#sky)"/>
+    ${layers}
+  </svg>`;
+}
+
+function applyWallpaper(mode, keyOrUrl) {
+  if (mode === "svg") {
+    state.scene = keyOrUrl; state.customBg = ""; saveState();
+    $("scene").style.opacity = 0;
+    setTimeout(() => {
+      $("scene").innerHTML = renderScene(keyOrUrl);
+      $("scene").style.opacity = 1; $("scene-custom").style.opacity = 0;
+    }, 300);
+    document.querySelectorAll("#sceneChips .chip").forEach(c => c.classList.toggle("on", c.dataset.q === keyOrUrl));
+  } else {
+    // Buang kutip/tanda kurung yang bisa memutus string url() di CSS.
+    const safe = String(keyOrUrl).replace(/['"()\\]/g, encodeURIComponent);
+    state.customBg = safe; saveState();
+    $("scene-custom").style.backgroundImage = `url("${safe}")`;
+    $("scene-custom").style.opacity = 1; $("scene").style.opacity = 0;
+    document.querySelectorAll("#sceneChips .chip").forEach(c => c.classList.remove("on"));
+  }
+}
+
+document.querySelectorAll("#sceneChips .chip").forEach(btn => btn.onclick = () => applyWallpaper("svg", btn.dataset.q));
+
+/* ---------- Pinterest / Custom Wallpaper Extractor (Anti Gagal) ---------- */
+
+// Ambil URL gambar Pinterest langsung dari bentuk URL pin (tanpa fetch HTML).
+// Contoh: /pin/1234567890/ -> https://i.pinimg.com/originals/xx/yy/zz/1234567890.jpg
+// Trik ini hanya bisa menebak folder shard, jadi tetap dipakai sebagai fallback cepat.
+function pinterestIdFromUrl(u) {
+  const m = u.match(/\/pin\/(\d{6,})/) || u.match(/[?&]pin_id=(\d{6,})/);
+  return m ? m[1] : null;
+}
+
+// Normalisasi URL gambar: paksa https, dan naikkan 736x -> originals bila memungkinkan.
+function normalizeImageUrl(u) {
+  let out = String(u || "").trim();
+  if (!out) return "";
+  if (out.startsWith("//")) out = "https:" + out;
+  out = out.replace(/^http:\/\//i, "https://");
+  // Pinterest: pakai resolusi penuh supaya tidak pecah di TV 1080p
+  out = out.replace(/i\.pinimg\.com\/\d+x\//i, "i.pinimg.com/originals/");
+  return out;
+}
+
+// Cari kandidat URL gambar di dalam HTML halaman (Pinterest atau situs biasa).
+function extractImageFromHtml(html) {
+  const patterns = [
+    /https:\/\/i\.pinimg\.com\/(?:originals|1200x|736x)\/[A-Za-z0-9_\/.-]+\.(?:jpg|jpeg|png|webp)/i,
+    /"(?:og:image|twitter:image)"\s+content="([^"]+)"/i,
+    /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+    /<img[^>]+src=["'](https:\/\/[^"']+\.(?:jpg|jpeg|png|webp))["']/i
+  ];
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m && m[1]) return m[1];
+    if (m && m[0] && m[0].startsWith("https://")) return m[0];
+  }
+  return null;
+}
+
+// Coba beberapa proxy CORS publik — kalau satu mati/limit, lanjut ke berikutnya.
+const CORS_PROXIES = [
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+];
+
+async function fetchViaProxy(target) {
+  let lastErr = null;
+  for (const build of CORS_PROXIES) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 9000);
+      const res = await fetch(build(target), { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      if (text && text.length > 200) return text;
+      throw new Error("respons kosong");
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("semua proxy gagal");
+}
+
+function setWallBtn(text, bg, revertMs) {
+  const btn = $("btnWallSearch");
+  btn.textContent = text;
+  btn.style.background = bg;
+  if (revertMs) {
+    clearTimeout(btn._revert);
+    btn._revert = setTimeout(() => {
+      btn.textContent = "Terapkan";
+      btn.style.background = "var(--gold)";
+    }, revertMs);
+  }
+}
+
+$("btnWallSearch").onclick = async () => {
+  const raw = $("wallInput").value.trim();
+  if (!raw) return;
+
+  setWallBtn("Mencari...", "#fff", 0);
+
+  // 1) URL gambar langsung
+  if (/^https?:\/\/.+\.(jpe?g|gif|png|webp|avif)(\?.*)?$/i.test(raw)) {
+    applyWallpaper("img", normalizeImageUrl(raw));
+    finishWallSearch();
+    return;
+  }
+
+  // 2) Pinterest: coba tebak URL gambar dari ID pin dulu (cepat, tanpa proxy)
+  const isPinterest = /pin\.it|pinterest\./i.test(raw);
+  if (isPinterest) {
+    const pinId = pinterestIdFromUrl(raw);
+    if (pinId) {
+      // i.pinimg.com butuh 2 level folder shard; coba beberapa kombinasi umum.
+      const shards = ["originals", "736x", "1200x"];
+      for (const shard of shards) {
+        const guess = `https://i.pinimg.com/${shard}/${pinId.slice(0,2)}/${pinId.slice(2,4)}/${pinId.slice(4,6)}/${pinId}.jpg`;
+        if (await imageLoads(guess)) {
+          applyWallpaper("img", guess);
+          finishWallSearch();
+          return;
+        }
+      }
+    }
+  }
+
+  // 3) Fallback: ambil HTML lewat proxy, lalu ekstrak og:image / i.pinimg.com
+  try {
+    const html = await fetchViaProxy(raw);
+    const found = extractImageFromHtml(html);
+    if (!found) throw new Error("gambar tidak ditemukan di halaman");
+    applyWallpaper("img", normalizeImageUrl(found));
+    finishWallSearch();
+  } catch (e) {
+    setWallBtn("Gagal", "#ffb3b3", 2500);
+  }
+};
+
+// Cek apakah URL gambar benar-benar bisa dimuat (menghindari wallpaper kosong).
+function imageLoads(u) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const timer = setTimeout(() => { img.onload = img.onerror = null; resolve(false); }, 7000);
+    img.onload = () => { clearTimeout(timer); resolve(true); };
+    img.onerror = () => { clearTimeout(timer); resolve(false); };
+    img.src = u;
+  });
+}
+
+function finishWallSearch() {
+  setWallBtn("Diterapkan", "var(--gold)", 2000);
+}
+
+/* ---------- Audio Alam (DOM) ---------- */
+const SOUND_LABELS = { rain: "🌧 Hujan", thunder: "⛈ Petir", river: "🌊 Air", forest: "🦗 Hutan", fire: "🔥 Api Unggun" };
+const activeAudios = {};
+
+function toggleSound(key, on, savePref = true) {
+  const audioEl = document.getElementById("audio-" + key);
+  if (!audioEl) return;
+  
+  if (on && !activeAudios[key]) {
+    audioEl.volume = 0; 
+    const playPromise = audioEl.play();
+    if (playPromise !== undefined) playPromise.catch(() => {});
+    
+    const obj = { audio: audioEl, fadeInterval: setInterval(() => {
+      let v = obj.audio.volume + 0.05;
+      if (v >= state.vol) { v = state.vol; clearInterval(obj.fadeInterval); }
+      obj.audio.volume = v;
+    }, 200)};
+    activeAudios[key] = obj;
+  } else if (!on && activeAudios[key]) {
+    const obj = activeAudios[key]; delete activeAudios[key];
+    clearInterval(obj.fadeInterval);
+    const fadeOut = setInterval(() => {
+      let v = obj.audio.volume - 0.05;
+      if (v <= 0) { v = 0; clearInterval(fadeOut); obj.audio.pause(); }
+      else { obj.audio.volume = v; }
+    }, 200);
+  }
+  
+  const keys = Object.keys(activeAudios);
+  if (savePref) { state.sounds = keys; saveState(); }
+  document.querySelectorAll("#soundChips .chip").forEach(c => c.classList.toggle("on", !!activeAudios[c.dataset.k]));
+  $("btnFx").classList.toggle("fx-on", keys.length > 0);
+}
+
+$("btnFx").onclick = () => {
+  const keys = Object.keys(activeAudios);
+  if (keys.length > 0) keys.forEach(k => toggleSound(k, false, false));
+  else (state.sounds.length ? state.sounds : ["rain"]).forEach(k => toggleSound(k, true, true));
+};
+
+/* ---------- Kontrol Pengaturan & Stepper Remote TV ---------- */
+function applyUI() {
+  saveState();
+  document.documentElement.style.setProperty("--ar-scale", state.arScale);
+  document.documentElement.style.setProperty("--id-scale", state.idScale);
+  document.documentElement.style.setProperty("--info-scale", state.infoScale);
+  document.documentElement.style.setProperty("--font-ar", state.fontAr);
+  document.documentElement.style.setProperty("--font-id", state.fontId);
+
+  $("volVal").textContent = Math.round(state.vol * 100) + "%";
+  $("arVal").textContent = Math.round(state.arScale * 100) + "%";
+  $("idVal").textContent = Math.round(state.idScale * 100) + "%";
+  $("infoVal").textContent = Math.round(state.infoScale * 100) + "%";
+
+  document.querySelectorAll("#fontArChips .chip").forEach(c => c.classList.toggle("on", c.dataset.v === state.fontAr));
+  document.querySelectorAll("#fontIdChips .chip").forEach(c => c.classList.toggle("on", c.dataset.v === state.fontId));
+  document.querySelectorAll("#apiChips .chip").forEach(c => c.classList.toggle("on", c.dataset.v === state.apiSource));
+
+  const qObj = QORIS.find(q => q.id === state.reciter) || QORIS[0];
+  $("lblReciter").textContent = qObj.name;
+}
+
+$("volDown").onclick = () => { state.vol = clamp(state.vol - 0.1, 0, 1); Object.values(activeAudios).forEach(o => { if(o.audio) o.audio.volume = state.vol; }); applyUI(); };
+$("volUp").onclick   = () => { state.vol = clamp(state.vol + 0.1, 0, 1); Object.values(activeAudios).forEach(o => { if(o.audio) o.audio.volume = state.vol; }); applyUI(); };
+$("arDown").onclick  = () => { state.arScale = clamp(state.arScale - 0.05, 0.5, 1.5); applyUI(); };
+$("arUp").onclick    = () => { state.arScale = clamp(state.arScale + 0.05, 0.5, 1.5); applyUI(); };
+$("idDown").onclick  = () => { state.idScale = clamp(state.idScale - 0.05, 0.4, 1.5); applyUI(); };
+$("idUp").onclick    = () => { state.idScale = clamp(state.idScale + 0.05, 0.4, 1.5); applyUI(); };
+$("infoDown").onclick= () => { state.infoScale = clamp(state.infoScale - 0.05, 0.4, 1.5); applyUI(); };
+$("infoUp").onclick  = () => { state.infoScale = clamp(state.infoScale + 0.05, 0.4, 1.5); applyUI(); };
+
+document.querySelectorAll("#fontArChips .chip").forEach(b => b.onclick = () => { state.fontAr = b.dataset.v; applyUI(); });
+document.querySelectorAll("#fontIdChips .chip").forEach(b => b.onclick = () => { state.fontId = b.dataset.v; applyUI(); });
+document.querySelectorAll("#apiChips .chip").forEach(b => b.onclick = () => { state.apiSource = b.dataset.v; applyUI(); fetchDaftarSurah(); });
+
+/* ---------- Modal Picker TV (Surah, Ayat, Qori) ---------- */
+function openPicker(type, triggerBtn) {
+  lastTriggerBtn = triggerBtn;
+  const grid = $("pickerGrid");
+  grid.className = "picker-grid " + (type === "ayah" ? "ayah-mode" : type === "qori" ? "qori-mode" : "");
+
+  if (type === "surah") {
+    $("pickerTitle").textContent = "Pilih Surah (Gunakan Arah & OK)";
+    grid.innerHTML = surahsList.map(s => `
+      <button class="picker-item ${s.num === state.last ? 'active' : ''}" data-val="${s.num}">
+        <span>${s.num}. ${esc(s.name)}</span>
+      </button>`).join("");
+  } else if (type === "ayah" && surah) {
+    $("pickerTitle").textContent = `Pilih Ayat · QS. ${surah.englishName}`;
+    grid.innerHTML = surah.ayahs.map((a, i) => `
+      <button class="picker-item ${i === idx ? 'active' : ''}" data-val="${i}">
+        <span>Ayat ${a.numInSurah}</span>
+      </button>`).join("");
+  } else if (type === "qori") {
+    $("pickerTitle").textContent = "Pilih Qori Pembaca";
+    grid.innerHTML = QORIS.map(q => `
+      <button class="picker-item ${q.id === state.reciter ? 'active' : ''}" data-val="${q.id}">
+        <span>🎙️ ${esc(q.name)}</span>
+      </button>`).join("");
+  }
+
+  grid.querySelectorAll(".picker-item").forEach(btn => {
+    btn.onclick = () => {
+      const val = btn.dataset.val;
+      closeAllModals();
+      if (type === "surah") loadSurah(Number(val), 0);
+      else if (type === "ayah") showAyah(Number(val));
+      else if (type === "qori") {
+        state.reciter = val;
+        applyUI();
+        if (surah) showAyah(idx);
+      }
+    };
+  });
+
+  $("pickerModal").classList.add("open");
+  setTimeout(() => {
+    const activeBtn = grid.querySelector(".picker-item.active") || grid.querySelector(".picker-item");
+    if (activeBtn) {
+      activeBtn.focus();
+      activeBtn.scrollIntoView({ block: "center" });
+    }
+  }, 40);
+}
+
+function closeAllModals() {
+  $("pickerModal").classList.remove("open");
+  $("settingsBackdrop").classList.remove("open");
+  if (lastTriggerBtn) {
+    setTimeout(() => lastTriggerBtn.focus(), 30);
+    lastTriggerBtn = null;
+  }
+}
+
+$("btnSurah").onclick = () => openPicker("surah", $("btnSurah"));
+$("btnAyah").onclick = () => openPicker("ayah", $("btnAyah"));
+$("btnReciter").onclick = () => openPicker("qori", $("btnReciter"));
+$("btnClosePicker").onclick = closeAllModals;
+$("pickerModal").onclick = e => { if (e.target === $("pickerModal")) closeAllModals(); };
+
+$("btnPanel").onclick = () => {
+  lastTriggerBtn = $("btnPanel");
+  $("settingsBackdrop").classList.add("open");
+  setTimeout(() => {
+    const firstChip = $("panel").querySelector(".chip.on") || $("btnClosePanel");
+    if (firstChip) firstChip.focus();
+  }, 40);
+};
+$("btnClosePanel").onclick = closeAllModals;
+$("settingsBackdrop").onclick = e => { if (e.target === $("settingsBackdrop")) closeAllModals(); };
+
+/* ---------- Fetcher 3 Opsi API Al-Quran ---------- */
+async function fetchDaftarSurah() {
+  try {
+    if (state.apiSource === "equran") {
+      const res = await fetch("https://equran.id/api/v2/surat");
+      const raw = (await res.json()).data;
+      surahsList = raw.map(s => ({ num: s.nomor, name: s.namaLatin }));
+    } else if (state.apiSource === "quranjson") {
+      const res = await fetch("https://raw.githubusercontent.com/penggguna/QuranJSON/master/quran.json");
+      const raw = await res.json();
+      surahsList = raw.map(s => ({ num: s.number_of_surah, name: s.name }));
+    } else { 
+      const res = await fetch("https://api.alquran.cloud/v1/surah");
+      const raw = (await res.json()).data;
+      surahsList = raw.map(s => ({ num: s.number, name: s.englishName }));
+    }
+    await loadSurah(state.last || 1, state.lastAyah || 0);
+  } catch (e) {
+    $("verse").innerHTML = '<p class="status">Gagal memuat API. Periksa internet atau ganti API di Setelan.</p>';
+  }
+}
+
+async function loadSurah(n, startIdx = 0) {
+  n = Math.max(1, Math.min(114, Number(n) || 1)); state.last = n; saveState();
+  $("verse").classList.remove("hide"); $("verse").innerHTML = '<p class="status">Memuat ayat...</p>';
+  try {
+    let sData = { n, name: "", englishName: "", arti: "", count: 0, type: "", ayahs: [] };
+    
+    if (state.apiSource === "equran") {
+      const j = (await (await fetch(`https://equran.id/api/v2/surat/${n}`)).json()).data;
+      sData = { n, name: j.nama, englishName: j.namaLatin, arti: j.arti, count: j.jumlahAyat, type: j.tempatTurun,
+        ayahs: j.ayat.map(a => ({ numInSurah: a.nomorAyat, ar: a.teksArab, id: a.teksIndonesia })) };
+    } 
+    else if (state.apiSource === "quranjson") {
+      const j = await (await fetch(`https://raw.githubusercontent.com/penggguna/QuranJSON/master/surah/${n}.json`)).json();
+      sData = { n, name: j.name_translations.ar, englishName: j.name, arti: j.name_translations.id, count: j.number_of_ayah, type: j.place,
+        ayahs: j.verses.map(a => ({ numInSurah: a.number, ar: a.text, id: a.translation_id })) };
+    } 
+    else { 
+      const j = (await (await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,id.indonesian`)).json()).data;
+      const [ar, id] = j;
+      sData = { n, name: ar.name, englishName: ar.englishName, arti: ar.englishNameTranslation, count: ar.numberOfAyahs, type: ar.revelationType === "Meccan" ? "Makkiyah" : "Madaniyah",
+        ayahs: ar.ayahs.map((a, i) => ({ numInSurah: a.numberInSurah, ar: a.text, id: id.ayahs[i].text })) };
+    }
+    
+    if (n !== 1 && n !== 9 && sData.ayahs[0].ar.startsWith("بِسْمِ")) {
+      sData.ayahs[0].ar = sData.ayahs[0].ar.replace(/^بِسْمِ\s+\S+\s+\S+\s+\S+\s+/u,"").trim();
+    }
+    
+    surah = sData;
+    $("lblSurah").textContent = `${surah.n}. ${surah.englishName}`;
+    showAyah(startIdx < 0 ? surah.ayahs.length - 1 : Math.min(startIdx, surah.ayahs.length - 1));
+  } catch (e) {
+    $("verse").innerHTML = '<p class="status">Gagal memuat surah.</p>';
+  }
+}
+
+function showAyah(i) {
+  if (!surah) return; clearTimeout(swapTimer); idx = Math.max(0, Math.min(i, surah.ayahs.length - 1));
+  state.lastAyah = idx; saveState();
+  const a = surah.ayahs[idx];
+  $("lblAyah").textContent = `Ayat ${a.numInSurah}`;
+  
+  const head = idx === 0 ? `
+    <p class="surah-title">Surah ${esc(surah.englishName)}</p>
+    <p class="surah-sub">${esc(surah.type)} · ${surah.count} Ayat · "${esc(surah.arti)}"</p>
+    ${surah.n!==1&&surah.n!==9?'<div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>':""}` : "";
+    
+  const commit = () => {
+    $("verse").innerHTML = `
+      ${head}
+      <p class="ar-text">${a.ar}</p>
+      <p class="id-text">${esc(a.id)}</p>
+      <div class="ayah-footer">
+        <span>QS. ${esc(surah.englishName)} : Ayat ${a.numInSurah} / ${surah.count}</span>
+      </div>`;
+      
+    $("stage").scrollTop = 0; $("verse").classList.remove("hide");
+    
+    $("audio").src = `https://everyayah.com/data/${state.reciter}/${pad3(surah.n)}${pad3(a.numInSurah)}.mp3`;
+    $("meta").textContent = `${surah.n}. ${surah.englishName} : ${a.numInSurah}`;
+    if (playing) $("audio").play().catch(()=>setPlaying(false));
+  };
+  if (!$("verse").querySelector(".status")) { $("verse").classList.add("hide"); swapTimer = setTimeout(commit, 320); } else commit();
+}
+
+function setPlaying(p) {
+  playing = p; 
+  $("playIcon").innerHTML = p ? ICONS.pause : ICONS.play;
+  $("play").classList.toggle("is-playing", p);
+}
+
+$("play").onclick = () => {
+  const a = $("audio");
+  if (playing) { a.pause(); setPlaying(false); }
+  else { setPlaying(true); a.play().catch(()=>setPlaying(false)); }
+};
+
+$("audio").onended = () => {
+  if (!playing) return;
+  if (state.repeat === "one") { $("audio").currentTime = 0; $("audio").play().catch(()=>setPlaying(false)); }
+  else nextAyah();
+};
+
+$("audio").ontimeupdate = () => {
+  const a = $("audio");
+  if (a.duration) {
+    $("seekFill").style.width = ((a.currentTime / a.duration) * 100) + "%";
+    $("curTime").textContent = fmtTime(a.currentTime);
+    $("durTime").textContent = fmtTime(a.duration);
+  }
+};
+
+$("seekBar").onclick = e => {
+  const a = $("audio");
+  if (!a.duration) return;
+  const rect = $("seekBar").getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  a.currentTime = pct * a.duration;
+};
+
+const nextAyah = () => { if(!surah) return; if(idx < surah.ayahs.length-1) showAyah(idx+1); else if(state.repeat === "surah") showAyah(0); else if(surah.n < 114) loadSurah(surah.n+1, 0); else setPlaying(false); };
+const prevAyah = () => { if(!surah) return; if(idx > 0) showAyah(idx-1); else if(surah.n > 1) loadSurah(surah.n-1, -1); };
+
+$("nextAyah").onclick = nextAyah; $("prevAyah").onclick = prevAyah;
+
+function updateRepeatUI() {
+  const modes = { all: ICONS.repeatAll, one: ICONS.repeatOne, surah: ICONS.repeatSurah };
+  $("btnRepeat").innerHTML = modes[state.repeat]; $("btnRepeat").classList.toggle("fx-on", state.repeat !== "all");
+}
+$("btnRepeat").onclick = () => { const m = ["all","one","surah"]; state.repeat = m[(m.indexOf(state.repeat)+1)%3]; saveState(); updateRepeatUI(); };
+
+/* =========================================================
+   LAYAR PENUH (OTOMATIS PLAY SAAT MASUK, OTOMATIS PAUSE SAAT KELUAR)
+   ========================================================= */
+function setImmersive(on) {
+  document.body.classList.toggle("immersive", on);
+  $("btnFs").innerHTML = on ? ICONS.fsExit : ICONS.fsEnter;
+  $("btnFs").title = on ? "Keluar Layar Penuh (Otomatis Pause)" : "Layar Penuh (Otomatis Play)";
+
+  // Reset memori tombol atas supaya tidak menunjuk elemen yang tidak valid
+  // saat daftar topButtons berubah (immersive <-> normal).
+  lastTopBtn = null;
+
+  if (on) {
+    setPlaying(true);
+    $("audio").play().catch(() => setPlaying(false));
+    setTimeout(() => $("play").focus(), 60);
+  } else {
+    $("audio").pause();
+    setPlaying(false);
+    setTimeout(() => $("play").focus(), 60);
+  }
+}
+
+$("btnFs").onclick = () => {
+  const wantImmersive = !document.body.classList.contains("immersive");
+  setImmersive(wantImmersive);
+  if (wantImmersive) {
+    document.documentElement.requestFullscreen?.().catch(()=>{});
+  } else if (document.fullscreenElement) {
+    document.exitFullscreen?.().catch(()=>{});
+  }
+};
+
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && document.body.classList.contains("immersive")) {
+    setImmersive(false);
+  }
+});
+
+/* =========================================================
+   SISTEM NAVIGASI 100% REMOTE TV (D-PAD SPATIAL ENGINE)
+   ========================================================= */
+let lastTopBtn = null;
+
+function findClosestInList(currentEl, list, dir) {
+  const curRect = currentEl.getBoundingClientRect();
+  const curCx = curRect.left + curRect.width / 2;
+  const curCy = curRect.top + curRect.height / 2;
+
+  let bestEl = null;
+  let bestScore = Infinity;
+
+  for (const el of list) {
+    if (el === currentEl || el.offsetParent === null) continue;
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = cx - curCx;
+    const dy = cy - curCy;
+
+    // Toleransi vertikal/horizontal longgar supaya chip & stepper yang tidak
+    // sejajar sempurna tetap bisa dijangkau D-pad (termasuk antar kolom di TV Android).
+    const rowTol = Math.max(curRect.height, r.height, 90) * 1.6;
+    const colTol = Math.max(curRect.width, r.width, 120) * 1.6;
+
+    if (dir === "Right" && dx > 4 && Math.abs(dy) < rowTol) {
+      const score = dx + Math.abs(dy) * 3;
+      if (score < bestScore) { bestScore = score; bestEl = el; }
+    } else if (dir === "Left" && dx < -4 && Math.abs(dy) < rowTol) {
+      const score = Math.abs(dx) + Math.abs(dy) * 3;
+      if (score < bestScore) { bestScore = score; bestEl = el; }
+    } else if (dir === "Down" && dy > 4 && Math.abs(dx) < colTol) {
+      const score = dy * 2 + Math.abs(dx);
+      if (score < bestScore) { bestScore = score; bestEl = el; }
+    } else if (dir === "Up" && dy < -4 && Math.abs(dx) < colTol) {
+      const score = Math.abs(dy) * 2 + Math.abs(dx);
+      if (score < bestScore) { bestScore = score; bestEl = el; }
+    }
+  }
+  return bestEl;
+}
+
+document.addEventListener("keydown", e => {
+  const active = document.activeElement;
+  const isTextInput = active && active.tagName === "INPUT" && active.type === "text";
+
+  if (e.key === "Escape" || e.key === "Backspace" || e.key === "GoBack") {
+    if (isTextInput && e.key === "Backspace") return;
+    if ($("pickerModal").classList.contains("open") || $("settingsBackdrop").classList.contains("open")) {
+      e.preventDefault();
+      closeAllModals();
+      return;
+    }
+    if (document.body.classList.contains("immersive")) {
+      e.preventDefault();
+      setImmersive(false);
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(()=>{});
+      return;
+    }
+  }
+
+  if (e.key === "MediaPlayPause") { e.preventDefault(); $("play").click(); return; }
+  if (e.key === "MediaNextTrack") { e.preventDefault(); nextAyah(); return; }
+  if (e.key === "MediaPreviousTrack") { e.preventDefault(); prevAyah(); return; }
+
+  if ($("pickerModal").classList.contains("open")) {
+    const items = Array.from($("pickerModal").querySelectorAll("button")).filter(el => el.offsetParent !== null);
+    if (e.key.startsWith("Arrow")) {
+      e.preventDefault();
+      const dir = e.key.replace("Arrow", "");
+      const next = findClosestInList(active, items, dir);
+      if (next) {
+        next.focus();
+        next.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      } else if (dir === "Up") {
+        // Fallback: naik ke tombol tutup picker
+        $("btnClosePicker").focus();
+      } else if (dir === "Down") {
+        // Fallback: turun ke item pertama grid
+        const first = items.find(el => el !== $("btnClosePicker"));
+        if (first) first.focus();
+      }
+    }
+    return;
+  }
+
+  if ($("settingsBackdrop").classList.contains("open")) {
+    // Panah kiri/kanan di input teks tetap dipakai untuk memindah kursor.
+    if (isTextInput && (e.key === "ArrowLeft" || e.key === "ArrowRight")) return;
+    const items = Array.from($("panel").querySelectorAll("button, input")).filter(el => el.offsetParent !== null);
+    if (e.key.startsWith("Arrow")) {
+      e.preventDefault();
+      const dir = e.key.replace("Arrow", "");
+      const next = findClosestInList(active, items, dir);
+      if (next) {
+        next.focus();
+        next.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      } else if (dir === "Up") {
+        // Fallback: naik ke tombol tutup panel
+        $("btnClosePanel").focus();
+      } else if (dir === "Down" && active === $("btnClosePanel")) {
+        // Turun dari tombol tutup ke kontrol pertama di panel
+        const first = items.find(el => el !== $("btnClosePanel"));
+        if (first) first.focus();
+      }
+    }
+    return;
+  }
+
+  const isImmersive = document.body.classList.contains("immersive");
+  const topButtons = isImmersive
+    ? [$("btnFs")]
+    : [$("btnSurah"), $("btnAyah"), $("btnReciter"), $("btnPanel"), $("btnFs")];
+  const dockButtons = isImmersive
+    ? [$("prevAyah"), $("play"), $("nextAyah")]
+    : [$("prevAyah"), $("play"), $("nextAyah"), $("btnRepeat"), $("btnFx")];
+
+  const inTop = topButtons.includes(active);
+  const inDock = dockButtons.includes(active);
+
+  if (e.key.startsWith("Arrow")) {
+    // Di input teks, panah kiri/kanan dipakai untuk memindah kursor.
+    if (isTextInput && (e.key === "ArrowLeft" || e.key === "ArrowRight")) return;
+    e.preventDefault();
+
+    if (!inTop && !inDock) {
+      $("play").focus();
+      return;
+    }
+
+    if (e.key === "ArrowLeft") {
+      const list = inTop ? topButtons : dockButtons;
+      const i = list.indexOf(active);
+      if (i > 0) list[i - 1].focus();
+    } 
+    else if (e.key === "ArrowRight") {
+      const list = inTop ? topButtons : dockButtons;
+      const i = list.indexOf(active);
+      if (i < list.length - 1) list[i + 1].focus();
+    } 
+    else if (e.key === "ArrowDown") {
+      if (inTop) {
+        lastTopBtn = active;
+        $("play").focus();
+      } else {
+        $("stage").scrollBy({ top: 90, behavior: "smooth" });
+      }
+    } 
+    else if (e.key === "ArrowUp") {
+      if (inDock) {
+        // Saat immersive hanya btnFs yang tersedia di bar atas.
+        const target = (lastTopBtn && topButtons.includes(lastTopBtn)) ? lastTopBtn : topButtons[0];
+        target.focus();
+      } else {
+        $("stage").scrollBy({ top: -90, behavior: "smooth" });
+      }
+    }
+  } 
+  else if (e.code === "Space") {
+    if (isTextInput) return; // biar spasi tetap bisa diketik di input
+    e.preventDefault();
+    $("play").click();
+  } 
+  else if (e.key === "Enter" && !inTop && !inDock) {
+    if (isTextInput) return; // Enter di input teks tidak memicu play
+    e.preventDefault();
+    $("play").focus();
+    $("play").click();
+  }
+});
+
+/* ---------- Inisialisasi Aplikasi ---------- */
+async function init() {
+  if(state.customBg) applyWallpaper("img", state.customBg);
+  else applyWallpaper("svg", state.scene);
+  
+  applyUI();
+  
+  Object.keys(SOUND_LABELS).forEach(k => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.dataset.k = k; b.textContent = SOUND_LABELS[k];
+    b.onclick = () => toggleSound(k, !activeAudios[k], true);
+    $("soundChips").appendChild(b);
+  });
+
+  await fetchDaftarSurah();
+  setTimeout(() => $("play").focus(), 150);
+}
+
+init();
+</script>
+</body>
+</html>
+

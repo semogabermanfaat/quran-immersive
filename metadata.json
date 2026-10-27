@@ -1,0 +1,6 @@
+{
+  "name": "Al-Quran Immersive",
+  "description": "Aplikasi Al-Quran Immersive Android TV dengan pemutar audio ayat, terjemahan Indonesia, efek suara alam, dan kontrol remote TV.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
